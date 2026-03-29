@@ -17,6 +17,8 @@ COPERNICUS_CLIENT_SECRET=your_copernicus_secret
 GEMINI_MODEL=gemini-2.5-flash
 GEMINI_AUTO_AFTER_ROUTE=false
 ```
+## Site
+https://afetrota.onrender.com/
 
 ## Port
 
