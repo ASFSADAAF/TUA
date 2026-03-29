@@ -98,6 +98,118 @@ export const TOPLANMA_ALANLARI = [
   // ── KONYA ─────────────────────────────────────────────────────────────────
   { id:"kon01", il:"Konya",     ilce:"Selçuklu",       ad:"Selçuklu Millet Bahçesi",       lat:37.9012, lng:32.4912, kapasite:20000, tip:"park"    },
   { id:"kon02", il:"Konya",     ilce:"Karatay",        ad:"Karatay Parkı",                 lat:37.8812, lng:32.5112, kapasite:8000,  tip:"park"    },
+  // ── KAYSERI ───────────────────────────────────────────────────────────────
+  { id:"kay01", il:"Kayseri",   ilce:"Melikgazi",      ad:"Melikgazi Millet Bahçesi",      lat:38.7312, lng:35.4712, kapasite:15000, tip:"park"    },
+  { id:"kay02", il:"Kayseri",   ilce:"Kocasinan",      ad:"Kocasinan Stadyumu",            lat:38.7512, lng:35.4912, kapasite:10000, tip:"stadyum" },
+  // ── ZONGULDAK ─────────────────────────────────────────────────────────────
+  { id:"zon01", il:"Zonguldak", ilce:"Merkez",         ad:"Zonguldak Millet Bahçesi",      lat:41.4512, lng:31.7912, kapasite:8000,  tip:"park"    },
+  // ── KASTAMONU ─────────────────────────────────────────────────────────────
+  { id:"kas01", il:"Kastamonu", ilce:"Merkez",         ad:"Kastamonu Millet Bahçesi",      lat:41.3712, lng:33.7812, kapasite:6000,  tip:"park"    },
+  // ── SİNOP ─────────────────────────────────────────────────────────────────
+  { id:"sin01", il:"Sinop",     ilce:"Merkez",         ad:"Sinop Sahil Parkı",             lat:42.0212, lng:35.1512, kapasite:5000,  tip:"park"    },
+  // ── ORDU ──────────────────────────────────────────────────────────────────
+  { id:"ord01", il:"Ordu",      ilce:"Altınordu",      ad:"Ordu Sahil Parkı",              lat:40.9812, lng:37.8812, kapasite:10000, tip:"park"    },
+  // ── GİRESUN ───────────────────────────────────────────────────────────────
+  { id:"gir01", il:"Giresun",   ilce:"Merkez",         ad:"Giresun Sahil Parkı",           lat:40.9112, lng:38.3912, kapasite:7000,  tip:"park"    },
+  // ── RİZE ──────────────────────────────────────────────────────────────────
+  { id:"riz01", il:"Rize",      ilce:"Merkez",         ad:"Rize Millet Bahçesi",           lat:41.0212, lng:40.5212, kapasite:6000,  tip:"park"    },
+  // ── ARTVİN ────────────────────────────────────────────────────────────────
+  { id:"art01", il:"Artvin",    ilce:"Merkez",         ad:"Artvin Meydan Parkı",           lat:41.1812, lng:41.8212, kapasite:4000,  tip:"park"    },
+  // ── AĞRI ──────────────────────────────────────────────────────────────────
+  { id:"agr01", il:"Ağrı",      ilce:"Merkez",         ad:"Ağrı Millet Bahçesi",           lat:39.7212, lng:43.0512, kapasite:6000,  tip:"park"    },
+  // ── IĞDIR ─────────────────────────────────────────────────────────────────
+  { id:"igd01", il:"Iğdır",     ilce:"Merkez",         ad:"Iğdır Meydan Parkı",            lat:39.9212, lng:44.0412, kapasite:5000,  tip:"meydan"  },
+  // ── KARS ──────────────────────────────────────────────────────────────────
+  { id:"kar01", il:"Kars",      ilce:"Merkez",         ad:"Kars Millet Bahçesi",           lat:40.6012, lng:43.0912, kapasite:6000,  tip:"park"    },
+  // ── ARDAHAN ───────────────────────────────────────────────────────────────
+  { id:"ard01", il:"Ardahan",   ilce:"Merkez",         ad:"Ardahan Meydan",                lat:41.1112, lng:42.7012, kapasite:3000,  tip:"meydan"  },
+  // ── MUŞ ───────────────────────────────────────────────────────────────────
+  { id:"mus01", il:"Muş",       ilce:"Merkez",         ad:"Muş Millet Bahçesi",            lat:38.7412, lng:41.4912, kapasite:6000,  tip:"park"    },
+  // ── BİTLİS ────────────────────────────────────────────────────────────────
+  { id:"bit01", il:"Bitlis",    ilce:"Merkez",         ad:"Bitlis Meydan Parkı",           lat:38.3912, lng:42.1212, kapasite:4000,  tip:"park"    },
+  // ── SİİRT ─────────────────────────────────────────────────────────────────
+  { id:"sii01", il:"Siirt",     ilce:"Merkez",         ad:"Siirt Millet Bahçesi",          lat:37.9312, lng:41.9412, kapasite:5000,  tip:"park"    },
+  // ── ŞIRNAK ────────────────────────────────────────────────────────────────
+  { id:"sir01", il:"Şırnak",    ilce:"Merkez",         ad:"Şırnak Meydan Parkı",           lat:37.5112, lng:42.4612, kapasite:4000,  tip:"meydan"  },
+  // ── HAKKARİ ───────────────────────────────────────────────────────────────
+  { id:"hak01", il:"Hakkari",   ilce:"Merkez",         ad:"Hakkari Meydan",                lat:37.5712, lng:43.7412, kapasite:3000,  tip:"meydan"  },
+  // ── MARDİN ────────────────────────────────────────────────────────────────
+  { id:"mar01", il:"Mardin",    ilce:"Artuklu",        ad:"Mardin Millet Bahçesi",         lat:37.3112, lng:40.7312, kapasite:8000,  tip:"park"    },
+  // ── BATMAN ────────────────────────────────────────────────────────────────
+  { id:"bat01", il:"Batman",    ilce:"Merkez",         ad:"Batman Millet Bahçesi",         lat:37.8812, lng:41.1312, kapasite:8000,  tip:"park"    },
+  // ── BINGÖL ────────────────────────────────────────────────────────────────
+  { id:"bin01", il:"Bingöl",    ilce:"Merkez",         ad:"Bingöl Millet Bahçesi",         lat:38.8812, lng:40.4912, kapasite:5000,  tip:"park"    },
+  // ── TUNCELİ ───────────────────────────────────────────────────────────────
+  { id:"tun01", il:"Tunceli",   ilce:"Merkez",         ad:"Tunceli Meydan Parkı",          lat:39.1012, lng:39.5412, kapasite:3000,  tip:"meydan"  },
+  // ── ELAZIĞ ────────────────────────────────────────────────────────────────
+  { id:"ela01", il:"Elazığ",    ilce:"Merkez",         ad:"Elazığ Millet Bahçesi",         lat:38.6712, lng:39.2212, kapasite:10000, tip:"park"    },
+  // ── KIRIKKALE ─────────────────────────────────────────────────────────────
+  { id:"kir01", il:"Kırıkkale", ilce:"Merkez",         ad:"Kırıkkale Millet Bahçesi",      lat:39.8412, lng:33.5112, kapasite:7000,  tip:"park"    },
+  // ── AKSARAY ───────────────────────────────────────────────────────────────
+  { id:"aks01", il:"Aksaray",   ilce:"Merkez",         ad:"Aksaray Millet Bahçesi",        lat:38.3712, lng:34.0312, kapasite:8000,  tip:"park"    },
+  // ── NİĞDE ─────────────────────────────────────────────────────────────────
+  { id:"nig01", il:"Niğde",     ilce:"Merkez",         ad:"Niğde Millet Bahçesi",          lat:37.9712, lng:34.6812, kapasite:7000,  tip:"park"    },
+  // ── NEVŞEHİR ──────────────────────────────────────────────────────────────
+  { id:"nev01", il:"Nevşehir",  ilce:"Merkez",         ad:"Nevşehir Millet Bahçesi",       lat:38.6212, lng:34.7112, kapasite:6000,  tip:"park"    },
+  // ── KIRŞEHİR ──────────────────────────────────────────────────────────────
+  { id:"krs01", il:"Kırşehir",  ilce:"Merkez",         ad:"Kırşehir Millet Bahçesi",       lat:39.1412, lng:34.1612, kapasite:6000,  tip:"park"    },
+  // ── YOZGAT ────────────────────────────────────────────────────────────────
+  { id:"yoz01", il:"Yozgat",    ilce:"Merkez",         ad:"Yozgat Millet Bahçesi",         lat:39.8212, lng:34.8112, kapasite:6000,  tip:"park"    },
+  // ── ÇORUM ─────────────────────────────────────────────────────────────────
+  { id:"cor01", il:"Çorum",     ilce:"Merkez",         ad:"Çorum Millet Bahçesi",          lat:40.5512, lng:34.9512, kapasite:8000,  tip:"park"    },
+  // ── AMASYA ────────────────────────────────────────────────────────────────
+  { id:"ama01", il:"Amasya",    ilce:"Merkez",         ad:"Amasya Sahil Parkı",            lat:40.6512, lng:35.8312, kapasite:6000,  tip:"park"    },
+  // ── TOKAT ─────────────────────────────────────────────────────────────────
+  { id:"tok01", il:"Tokat",     ilce:"Merkez",         ad:"Tokat Millet Bahçesi",          lat:40.3112, lng:36.5512, kapasite:7000,  tip:"park"    },
+  // ── BAYBURT ───────────────────────────────────────────────────────────────
+  { id:"bay01", il:"Bayburt",   ilce:"Merkez",         ad:"Bayburt Meydan Parkı",          lat:40.2512, lng:40.2212, kapasite:3000,  tip:"meydan"  },
+  // ── GÜMÜŞHANe ─────────────────────────────────────────────────────────────
+  { id:"gum01", il:"Gümüşhane", ilce:"Merkez",         ad:"Gümüşhane Millet Bahçesi",      lat:40.4612, lng:39.4812, kapasite:4000,  tip:"park"    },
+  // ── KARABÜK ───────────────────────────────────────────────────────────────
+  { id:"krb01", il:"Karabük",   ilce:"Merkez",         ad:"Karabük Millet Bahçesi",        lat:41.2012, lng:32.6212, kapasite:6000,  tip:"park"    },
+  // ── BARTIN ────────────────────────────────────────────────────────────────
+  { id:"brt01", il:"Bartın",    ilce:"Merkez",         ad:"Bartın Millet Bahçesi",         lat:41.6312, lng:32.3412, kapasite:5000,  tip:"park"    },
+  // ── ÇANKIRI ───────────────────────────────────────────────────────────────
+  { id:"cnk01", il:"Çankırı",   ilce:"Merkez",         ad:"Çankırı Millet Bahçesi",        lat:40.6012, lng:33.6212, kapasite:5000,  tip:"park"    },
+  // ── KIRKLARELI ────────────────────────────────────────────────────────────
+  { id:"krl01", il:"Kırklareli",ilce:"Merkez",         ad:"Kırklareli Millet Bahçesi",     lat:41.7312, lng:27.2212, kapasite:5000,  tip:"park"    },
+  // ── EDİRNE ────────────────────────────────────────────────────────────────
+  { id:"edi01", il:"Edirne",    ilce:"Merkez",         ad:"Edirne Millet Bahçesi",         lat:41.6712, lng:26.5512, kapasite:8000,  tip:"park"    },
+  // ── TEKİRDAĞ ──────────────────────────────────────────────────────────────
+  { id:"tek01", il:"Tekirdağ",  ilce:"Süleymanpaşa",   ad:"Tekirdağ Sahil Parkı",          lat:40.9812, lng:27.5112, kapasite:10000, tip:"park"    },
+  // ── BALIKESİR ─────────────────────────────────────────────────────────────
+  { id:"bal01", il:"Balıkesir", ilce:"Altıeylül",      ad:"Balıkesir Millet Bahçesi",      lat:39.6512, lng:27.8812, kapasite:10000, tip:"park"    },
+  // ── MANİSA ────────────────────────────────────────────────────────────────
+  { id:"man01", il:"Manisa",    ilce:"Şehzadeler",     ad:"Manisa Millet Bahçesi",         lat:38.6112, lng:27.4312, kapasite:10000, tip:"park"    },
+  // ── AYDIN ─────────────────────────────────────────────────────────────────
+  { id:"ayd01", il:"Aydın",     ilce:"Efeler",         ad:"Aydın Millet Bahçesi",          lat:37.8512, lng:27.8412, kapasite:10000, tip:"park"    },
+  // ── UŞAK ──────────────────────────────────────────────────────────────────
+  { id:"usa01", il:"Uşak",      ilce:"Merkez",         ad:"Uşak Millet Bahçesi",           lat:38.6812, lng:29.4012, kapasite:7000,  tip:"park"    },
+  // ── AFYONKARAHİSAR ────────────────────────────────────────────────────────
+  { id:"afy01", il:"Afyonkarahisar", ilce:"Merkez",    ad:"Afyon Millet Bahçesi",          lat:38.7612, lng:30.5412, kapasite:8000,  tip:"park"    },
+  // ── ISPARTA ───────────────────────────────────────────────────────────────
+  { id:"isp01", il:"Isparta",   ilce:"Merkez",         ad:"Isparta Millet Bahçesi",        lat:37.7612, lng:30.5512, kapasite:8000,  tip:"park"    },
+  // ── BURDUR ────────────────────────────────────────────────────────────────
+  { id:"bur01", il:"Burdur",    ilce:"Merkez",         ad:"Burdur Millet Bahçesi",         lat:37.7212, lng:30.2912, kapasite:6000,  tip:"park"    },
+  // ── KARAMAN ───────────────────────────────────────────────────────────────
+  { id:"krm01", il:"Karaman",   ilce:"Merkez",         ad:"Karaman Millet Bahçesi",        lat:37.1812, lng:33.2212, kapasite:7000,  tip:"park"    },
+  // ── OSMANİYE ──────────────────────────────────────────────────────────────
+  { id:"osm01", il:"Osmaniye",  ilce:"Merkez",         ad:"Osmaniye Millet Bahçesi",       lat:37.0712, lng:36.2412, kapasite:7000,  tip:"park"    },
+  // ── K.MARAŞ EK ────────────────────────────────────────────────────────────
+  { id:"kah07", il:"Kahramanmaraş", ilce:"Pazarcık",   ad:"Pazarcık Meydan Parkı",         lat:37.4912, lng:37.2912, kapasite:4000,  tip:"meydan"  },
+  { id:"kah08", il:"Kahramanmaraş", ilce:"Göksun",     ad:"Göksun Meydan",                 lat:38.0212, lng:36.4912, kapasite:3000,  tip:"meydan"  },
+  // ── İSTANBUL EK ───────────────────────────────────────────────────────────
+  { id:"ist10", il:"İstanbul",  ilce:"Sarıyer",        ad:"Sarıyer Sahil Parkı",           lat:41.1612, lng:29.0512, kapasite:8000,  tip:"park"    },
+  { id:"ist11", il:"İstanbul",  ilce:"Silivri",        ad:"Silivri Sahil Parkı",           lat:41.0712, lng:28.2512, kapasite:10000, tip:"park"    },
+  { id:"ist12", il:"İstanbul",  ilce:"Tuzla",          ad:"Tuzla Millet Bahçesi",          lat:40.8212, lng:29.3012, kapasite:8000,  tip:"park"    },
+  { id:"ist13", il:"İstanbul",  ilce:"Eyüpsultan",     ad:"Eyüpsultan Millet Bahçesi",     lat:41.0512, lng:28.9312, kapasite:12000, tip:"park"    },
+  { id:"ist14", il:"İstanbul",  ilce:"Sultanbeyli",    ad:"Sultanbeyli Meydan Parkı",      lat:40.9612, lng:29.2712, kapasite:7000,  tip:"meydan"  },
+  // ── ANKARA EK ─────────────────────────────────────────────────────────────
+  { id:"ank05", il:"Ankara",    ilce:"Sincan",         ad:"Sincan Millet Bahçesi",         lat:39.9712, lng:32.5812, kapasite:10000, tip:"park"    },
+  { id:"ank06", il:"Ankara",    ilce:"Altındağ",       ad:"Altındağ Meydan Parkı",         lat:39.9512, lng:32.8912, kapasite:7000,  tip:"meydan"  },
+  // ── HATAY EK ──────────────────────────────────────────────────────────────
+  { id:"hat07", il:"Hatay",     ilce:"Payas",          ad:"Payas Sahil Parkı",             lat:36.7512, lng:36.1612, kapasite:5000,  tip:"park"    },
+  { id:"hat08", il:"Hatay",     ilce:"Altınözü",       ad:"Altınözü Meydan",               lat:36.0912, lng:36.2312, kapasite:3000,  tip:"meydan"  },
 ];
 
 export const TIP_META = {
