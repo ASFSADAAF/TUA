@@ -14,18 +14,18 @@
 
 <div class="overlay" id="setupOverlay" style="display:none">
   <div class="setup-card">
-    <h2>Operasyon konsolu</h2>
-    <p>Anahtarlar sunucudan okunur. Yoksa buraya girin — yalnızca bu oturum için geçerlidir.</p>
+    <h2>AfetYol+ Operasyon Konsolu</h2>
+    <p>Sistemi başlatmak için API anahtarlarını girin.</p>
     <div class="field">
-      <label>Google Maps API Key</label>
-      <input type="password" id="gmKeyInput" autocomplete="off" placeholder="AIza...">
+      <label>Google Maps API Key <span style="color:#f87171">*</span></label>
+      <input type="password" id="gmKeyInput" autocomplete="off" placeholder="AIza... (zorunlu)">
     </div>
     <div class="field" style="margin-top:10px">
-      <label>Gemini API Key</label>
-      <input type="password" id="geminiKeyInput" autocomplete="off" placeholder="AIza...">
+      <label>Gemini API Key <span style="color:#fbbf24">✦ AI özellikleri için</span></label>
+      <input type="password" id="geminiKeyInput" autocomplete="off" placeholder="AIza... (AI analizi için)">
     </div>
     <p id="gmKeyHint" class="setup-note"></p>
-    <button type="button" class="btn btn-primary btn-block" id="btnStart">Haritayı başlat</button>
+    <button type="button" class="btn btn-primary btn-block" id="btnStart">Haritayı Başlat</button>
   </div>
 </div>
 
@@ -176,6 +176,46 @@
 
         <div class="divider"></div>
         <button type="button" class="btn btn-primary btn-block" id="calcBtn" disabled>Rota hesapla</button>
+
+        <!-- ── BINA HASAR TESPİTİ ── -->
+        <div class="divider"></div>
+        <div class="p-head" style="padding:0 0 6px">
+          <span class="p-head-title">Bina Hasar Tespiti</span>
+        </div>
+        <div class="field">
+          <label>Toplam bina</label>
+          <input type="number" id="bdgTotal" min="1" value="100" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Yıkık bina</label>
+          <input type="number" id="bdgCollapsed" min="0" value="20" style="width:100%">
+        </div>
+        <div class="field">
+          <label>Hasarlı bina</label>
+          <input type="number" id="bdgDamaged" min="0" value="35" style="width:100%">
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-amber btn-sm" id="btnBdgMark" style="flex:1">Haritadan Kare Seç</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btnBdgAdd">Ekle</button>
+        </div>
+        <p class="setup-note" id="bdgNote" style="display:none;margin:4px 0 0"></p>
+
+        <!-- ── EKİP YÖNETİMİ ── -->
+        <div class="divider"></div>
+        <div class="p-head" style="padding:0 0 6px">
+          <span class="p-head-title">Kurtarma Ekipleri</span>
+          <span class="p-head-badge" id="teamCount">0</span>
+        </div>
+        <div class="field">
+          <label>Ekip adı</label>
+          <input type="text" id="teamName" placeholder="Ekip A" autocomplete="off">
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnTeamPlace" style="flex:1">Haritadan Konum</button>
+          <button type="button" class="btn btn-primary btn-sm" id="btnAutoAssign">Otomatik Ata</button>
+        </div>
+        <div class="d-list" id="teamList" style="max-height:140px;overflow-y:auto;margin-top:6px"></div>
+
       </div>
     </div>
     <div class="p-head" style="border-top:1px solid var(--border)">
@@ -211,6 +251,31 @@
 
     <!-- ── ANALİZ PANELİ ── -->
     <div id="paneAnaliz" style="display:flex;flex-direction:column;height:100%">
+
+      <!-- Hayatta Kalma Zamanlayıcısı -->
+      <div id="survivalWidget" style="padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Hayatta Kalma Tahmini</span>
+          <button type="button" id="btnSurvivalStart" class="btn btn-sm btn-amber" style="padding:2px 8px;font-size:11px">Başlat</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1">
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden">
+              <div id="survivalBar" style="height:100%;width:91%;background:#f87171;border-radius:3px;transition:width .5s,background .5s"></div>
+            </div>
+          </div>
+          <span id="survivalPct" style="font-size:16px;font-weight:700;color:#f87171;min-width:42px;text-align:right">%91</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <span id="survivalLabel" style="font-size:11px;color:#f87171">Afet saati başlatılmadı</span>
+          <span id="survivalElapsed" style="font-size:11px;color:var(--text3)">0s 0dk</span>
+        </div>
+        <div style="margin-top:6px;display:none" id="survivalTimeRow">
+          <label style="font-size:11px;color:var(--text2)">Afet başlangıç saati:</label>
+          <input type="datetime-local" id="survivalStartInput" style="width:100%;margin-top:3px;font-size:11px">
+        </div>
+      </div>
+
       <div id="routeInfo" style="display:none">
         <div class="route-grid">
           <div class="r-card">
