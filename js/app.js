@@ -29,6 +29,8 @@ import {
   setAiChip,
 } from "./ui.js";
 import { initToplanmaAlanlari, TOPLANMA_ALANLARI, TIP_META } from "./assembly.js";
+import { initTeams, addTeam, removeTeam, autoAssign, clearTeams, getTeams } from "./teams.js";
+import { startSurvivalClock, setSurvivalStart, stopSurvivalClock, survivalPct, urgencyLabel, getElapsedHours } from "./survival.js";
 
 const AI_PANEL = "aiPanel";
 
@@ -51,6 +53,10 @@ const state = {
   geocoder: null,
   autoGeminiAfterRoute: false,
   toplanmaKatmani: null,
+  buildingRects: [],       // { rect, zone, id }
+  bdgPickMode: false,
+  bdgPickStart: null,
+  teamPickMode: false,
 };
 
 function $(id) {
@@ -179,13 +185,15 @@ function initMap() {
     renderAssemblyList();
     const cnt = $("assemblyCount");
     if (cnt) cnt.textContent = `${TOPLANMA_ALANLARI.length} alan`;
-    // Başlangıçta checkbox checked ise hepsi görünür, değilse gizle
     if ($("chkAssemblyVisible")?.checked) {
       filterAssembly($("assemblySearch")?.value || "");
     } else {
       state.toplanmaKatmani.hideAll();
     }
   } catch (e) { console.warn("[Toplanma]", e.message); }
+
+  // Ekip yönetimi
+  initTeams(state.map, renderTeamList);
 }
 function runMapPlaceSearch(raw) {
   const q = String(raw || "").trim();
@@ -502,6 +510,34 @@ async function analyzeCityRouteWithAI() {
 function handleMapClick(latLng) {
   const lat = latLng.lat();
   const lng = latLng.lng();
+
+  // Bina hasar kare seçimi
+  if (state.bdgPickMode) {
+    if (!state.bdgPickStart) {
+      state.bdgPickStart = { lat, lng };
+      setMapStatus(true, "İkinci köşeyi tıklayın…");
+      return;
+    } else {
+      const p1 = state.bdgPickStart;
+      state.bdgPickStart = null;
+      state.bdgPickMode = false;
+      setCursorMode("observe");
+      finalizeBuildingRect(p1, { lat, lng });
+      return;
+    }
+  }
+
+  // Ekip konumu seçimi
+  if (state.teamPickMode) {
+    state.teamPickMode = false;
+    setCursorMode("observe");
+    const name = $("teamName")?.value?.trim() || `Ekip ${getTeams().length + 1}`;
+    addTeam(name, lat, lng);
+    if ($("teamName")) $("teamName").value = "";
+    addMsg(AI_PANEL, "system", `${escapeHtml(name)} konumlandırıldı (${lat.toFixed(4)}, ${lng.toFixed(4)})`);
+    return;
+  }
+
   if (state.cursorMode === "start") {
     setStartPoint(lat, lng);
     setCursorMode("end");
@@ -766,12 +802,135 @@ function escapeHtml(s) {
     .replace(/"/g, "&quot;");
 }
 
+// ---------------------------------------------------------------------------
+// BİNA HASAR TESPİTİ — Kare (Rectangle) ile bölge işaretleme
+// ---------------------------------------------------------------------------
+function buildingRiskFromCounts(total, collapsed, damaged) {
+  if (!total || total <= 0) return { severity: "low", score: 0 };
+  const ratio = (collapsed + damaged * 0.5) / total;
+  if (ratio >= 0.5) return { severity: "high",   score: ratio };
+  if (ratio >= 0.2) return { severity: "medium",  score: ratio };
+  return              { severity: "low",    score: ratio };
+}
+
+function finalizeBuildingRect(p1, p2) {
+  const total     = Math.max(1, parseInt($("bdgTotal")?.value)     || 100);
+  const collapsed = Math.max(0, parseInt($("bdgCollapsed")?.value) || 0);
+  const damaged   = Math.max(0, parseInt($("bdgDamaged")?.value)   || 0);
+
+  const { severity } = buildingRiskFromCounts(total, collapsed, damaged);
+  const color = { high: "#dc2626", medium: "#d97706", low: "#16a34a" }[severity];
+
+  const bounds = {
+    north: Math.max(p1.lat, p2.lat),
+    south: Math.min(p1.lat, p2.lat),
+    east:  Math.max(p1.lng, p2.lng),
+    west:  Math.min(p1.lng, p2.lng),
+  };
+
+  const rect = new google.maps.Rectangle({
+    bounds,
+    map: state.map,
+    strokeColor: color,
+    strokeOpacity: 0.9,
+    strokeWeight: 2,
+    fillColor: color,
+    fillOpacity: 0.18,
+    clickable: true,
+  });
+
+  const centerLat = (bounds.north + bounds.south) / 2;
+  const centerLng = (bounds.east  + bounds.west)  / 2;
+  const name = `Bina Hasarı (${collapsed} yıkık / ${damaged} hasarlı / ${total} toplam)`;
+
+  // Hasar bölgesi olarak da ekle (rota risk hesabına dahil olsun)
+  addDisasterZone(centerLat, centerLng, name, severity);
+  const zoneId = state.disasterZones[state.disasterZones.length - 1].id;
+
+  // InfoWindow
+  const iw = new google.maps.InfoWindow({
+    content: `<div style="background:#0f172a;color:#f1f5f9;padding:8px 10px;border-radius:6px;font-size:12px;border:1px solid ${color}66">
+      <b style="color:${color}">${escapeHtml(name)}</b><br>
+      Risk: <b>${severity === "high" ? "Yüksek" : severity === "medium" ? "Orta" : "Düşük"}</b>
+    </div>`,
+    position: { lat: centerLat, lng: centerLng },
+  });
+  rect.addListener("click", () => iw.open(state.map));
+
+  state.buildingRects.push({ rect, zoneId, id: zoneId });
+  setMapStatus(true, "Harita aktif");
+
+  const note = $("bdgNote");
+  if (note) {
+    note.textContent = `Eklendi: ${name}`;
+    note.style.display = "";
+    setTimeout(() => { note.style.display = "none"; }, 3000);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// EKİP LİSTESİ — Render
+// ---------------------------------------------------------------------------
+function renderTeamList() {
+  const el = $("teamList");
+  const cnt = $("teamCount");
+  const teams = getTeams();
+  if (cnt) cnt.textContent = String(teams.length);
+  if (!el) return;
+  if (!teams.length) {
+    el.innerHTML = `<div class="d-empty">Ekip yok — haritadan konum seç</div>`;
+    return;
+  }
+  el.innerHTML = teams.map(t => {
+    const zone = state.disasterZones.find(z => z.id === t.assignedZoneId);
+    const assignTxt = zone ? escapeHtml(zone.name) : "—";
+    return `<div class="d-item" style="border-left:3px solid ${t.color}">
+      <div class="d-sev" style="background:${t.color};border-radius:50%"></div>
+      <div class="d-info" style="flex:1;min-width:0">
+        <div class="d-name">${escapeHtml(t.name)}</div>
+        <div class="d-coords" style="font-size:10px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          ${t.status === "görevde" ? "→ " + assignTxt : "Hazır"}
+        </div>
+      </div>
+      <button type="button" class="d-remove" data-tid="${t.id}" aria-label="Kaldır">×</button>
+    </div>`;
+  }).join("");
+  el.querySelectorAll("[data-tid]").forEach(btn => {
+    btn.addEventListener("click", () => removeTeam(Number(btn.dataset.tid)));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// HAYATTA KALMA ZAMANLAYICISI — UI güncelleme
+// ---------------------------------------------------------------------------
+function onSurvivalTick(elapsedH, pct, urg) {
+  const bar   = $("survivalBar");
+  const pctEl = $("survivalPct");
+  const lbl   = $("survivalLabel");
+  const elapsed = $("survivalElapsed");
+
+  if (bar)   { bar.style.width = `${pct}%`; bar.style.background = urg.color; }
+  if (pctEl) { pctEl.textContent = `%${Math.round(pct)}`; pctEl.style.color = urg.color; }
+  if (lbl)   { lbl.textContent = urg.label; lbl.style.color = urg.color; }
+  if (elapsed) {
+    const h = Math.floor(elapsedH);
+    const m = Math.floor((elapsedH - h) * 60);
+    elapsed.textContent = `${h}s ${m}dk`;
+  }
+
+  // Bölgelere hayatta kalma skoru yaz (otomatik atama önceliği için)
+  state.disasterZones.forEach(z => { z.survivalScore = pct; });
+}
+
 function magToSeverity(m) {
   const x = Number(m);
   if (x >= 5) return "high";
   if (x >= 3.5) return "medium";
   return "low";
 }
+
+/** Kahramanmaraş uydu blok güncellemesi — ileride genişletilebilir */
+function updateKahramanSatBlock() {}
 
 
 function updateEqRangeLabel() {
@@ -1117,13 +1276,12 @@ function switchMode(mode) {
 async function startSystem() {
   const manual = $("gmKeyInput")?.value?.trim() || "";
   const manualGemini = $("geminiKeyInput")?.value?.trim() || "";
-  const key = state.gmKey || manual;
+  // Sunucudan gelen key varsa onu kullan, yoksa input'tan al
+  const key = manual || state.gmKey;
   if (!key) {
-    addMsg(
-      AI_PANEL,
-      "error",
-      "Google Maps anahtarı yok. .env içinde GOOGLE_MAPS_API_KEY ayarlayın veya buraya girin."
-    );
+    const hint = $("gmKeyHint");
+    if (hint) { hint.textContent = "Google Maps API Key zorunludur."; hint.style.color = "#f87171"; }
+    $("gmKeyInput")?.focus();
     return;
   }
 
@@ -1142,6 +1300,10 @@ async function startSystem() {
         $("analyzeBtn").disabled = false;
       }
     } catch { /* sunucu hatası — devam et */ }
+  } else if (manualGemini === "" && !state.aiAvailable) {
+    // Gemini key girilmedi ve sunucuda da yok — uyar ama devam et
+    const hint = $("gmKeyHint");
+    if (hint) { hint.textContent = "Gemini API Key girilmedi — AI özellikleri devre dışı olacak."; hint.style.color = "#fbbf24"; }
   }
 
   state.gmKey = key;
@@ -1174,8 +1336,13 @@ async function bootstrap() {
 
   if (configMaps) {
     state.gmKey = configMaps;
-    $("setupOverlay").style.display = "none";
-    loadGoogleMapsScript(configMaps);
+    // Sunucudan key gelse bile overlay'i göster — kullanıcı onaylasın
+    $("setupOverlay").style.display = "flex";
+    $("gmKeyInput").value = "";  // güvenlik: sunucu key'ini input'a yazma
+    if ($("geminiKeyInput")) $("geminiKeyInput").value = "";
+    $("gmKeyHint").textContent = state.aiAvailable
+      ? "Sunucudan anahtarlar okundu. Değiştirmek istemiyorsanız boş bırakın."
+      : "Google Maps anahtarı sunucudan alındı. Gemini API Key girerek AI özelliklerini etkinleştirin.";
   } else {
     $("setupOverlay").style.display = "flex";
     $("gmKeyInput").value = "";
@@ -1266,6 +1433,74 @@ async function bootstrap() {
   updateKahramanSatBlock();
   refreshDisasterUi();
   if (!configMaps) setMapStatus(false, "Anahtar bekleniyor");
+
+  // ── Bina hasar tespiti ──────────────────────────────────────────────────
+  $("btnBdgMark")?.addEventListener("click", () => {
+    if (!state.map) return;
+    state.bdgPickMode = true;
+    state.bdgPickStart = null;
+    setCursorMode("observe");
+    state.map.setOptions({ draggableCursor: "crosshair" });
+    setMapStatus(true, "Birinci köşeyi tıklayın…");
+  });
+
+  $("btnBdgAdd")?.addEventListener("click", () => {
+    if (!state.map) return;
+    // Harita merkezini kullan
+    const c = state.map.getCenter();
+    const delta = 0.003;
+    finalizeBuildingRect(
+      { lat: c.lat() + delta, lng: c.lng() - delta },
+      { lat: c.lat() - delta, lng: c.lng() + delta }
+    );
+  });
+
+  // ── Ekip yönetimi ───────────────────────────────────────────────────────
+  $("btnTeamPlace")?.addEventListener("click", () => {
+    if (!state.map) { addMsg(AI_PANEL, "error", "Harita henüz yüklenmedi."); return; }
+    state.teamPickMode = true;
+    state.map.setOptions({ draggableCursor: "crosshair" });
+    setMapStatus(true, "Ekip konumunu haritadan seçin…");
+  });
+
+  $("btnAutoAssign")?.addEventListener("click", () => {
+    const teams = getTeams();
+    if (!teams.length) { addMsg(AI_PANEL, "error", "Önce en az bir ekip ekleyin."); return; }
+    if (!state.disasterZones.length) { addMsg(AI_PANEL, "error", "Önce hasar bölgesi ekleyin."); return; }
+    const assignments = autoAssign(state.disasterZones);
+    const lines = assignments.map(({ team, zone }) =>
+      `${escapeHtml(team.name)} → ${escapeHtml(zone.name)} (${zone.severity})`
+    );
+    addMsg(AI_PANEL, "system",
+      `<b>Otomatik Görev Atama</b><br>${lines.join("<br>")}`, true
+    );
+  });
+
+  // ── Hayatta kalma zamanlayıcısı ─────────────────────────────────────────
+  $("btnSurvivalStart")?.addEventListener("click", () => {
+    const row = $("survivalTimeRow");
+    const inp = $("survivalStartInput");
+    if (!row || !inp) return;
+    if (row.style.display === "none") {
+      // İlk tık: saat girişini göster, şimdiki zamanı doldur
+      const now = new Date();
+      const local = new Date(now - now.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16);
+      inp.value = local;
+      row.style.display = "";
+      $("btnSurvivalStart").textContent = "Onayla";
+    } else {
+      // İkinci tık: başlat
+      const val = inp.value;
+      const d = val ? new Date(val) : new Date();
+      setSurvivalStart(d, onSurvivalTick);
+      row.style.display = "none";
+      $("btnSurvivalStart").textContent = "Sıfırla";
+      addMsg(AI_PANEL, "system",
+        `Hayatta kalma saati başlatıldı: ${d.toLocaleString("tr-TR")}`
+      );
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", bootstrap);
