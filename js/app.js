@@ -1116,15 +1116,34 @@ function switchMode(mode) {
 
 async function startSystem() {
   const manual = $("gmKeyInput")?.value?.trim() || "";
+  const manualGemini = $("geminiKeyInput")?.value?.trim() || "";
   const key = state.gmKey || manual;
   if (!key) {
     addMsg(
       AI_PANEL,
       "error",
-      "Google Maps anahtarı yok. .env içinde GOOGLE_MAPS_API_KEY ayarlayın."
+      "Google Maps anahtarı yok. .env içinde GOOGLE_MAPS_API_KEY ayarlayın veya buraya girin."
     );
     return;
   }
+
+  // Runtime key'leri sunucuya gönder
+  if (manual || manualGemini) {
+    try {
+      const r = await fetch("/api/set-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mapsKey: manual || undefined, geminiKey: manualGemini || undefined }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (data.aiAvailable) {
+        state.aiAvailable = true;
+        setAiChip(true);
+        $("analyzeBtn").disabled = false;
+      }
+    } catch { /* sunucu hatası — devam et */ }
+  }
+
   state.gmKey = key;
   $("setupOverlay").style.display = "none";
   loadGoogleMapsScript(key);
@@ -1160,8 +1179,9 @@ async function bootstrap() {
   } else {
     $("setupOverlay").style.display = "flex";
     $("gmKeyInput").value = "";
+    if ($("geminiKeyInput")) $("geminiKeyInput").value = "";
     $("gmKeyHint").textContent =
-      "Sunucu anahtar göndermedi. .env içine GOOGLE_MAPS_API_KEY ekleyin veya geçici olarak buraya yapıştırın (yalnızca geliştirme).";
+      "Sunucu anahtar göndermedi. .env içine GOOGLE_MAPS_API_KEY ve GEMINI_API_KEY ekleyin veya buraya girin.";
   }
 
   $("btnStart").addEventListener("click", startSystem);
@@ -1229,23 +1249,3 @@ async function bootstrap() {
     const btn = e.target.closest("[data-tip]");
     if (!btn) return;
     $("assemblyTipFilter").querySelectorAll("button").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    filterAssembly($("assemblySearch")?.value || "", btn.dataset.tip);
-  });
-
-  $("chkAssemblyVisible")?.addEventListener("change", (e) => {
-    if (!state.toplanmaKatmani) return;
-    if (e.target.checked) {
-      filterAssembly($("assemblySearch")?.value || "");
-    } else {
-      state.toplanmaKatmani.hideAll();
-    }
-  });
-
-  updateEqRangeLabel();
-  updateKahramanSatBlock();
-  refreshDisasterUi();
-  if (!configMaps) setMapStatus(false, "Anahtar bekleniyor");
-}
-
-document.addEventListener("DOMContentLoaded", bootstrap);
