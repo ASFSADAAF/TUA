@@ -113,13 +113,25 @@ export async function fetchEarthquakes(q = {}) {
 export async function fetchWaterRoute(from, to) {
   const base = "";
   const url = `${base}/api/water-route`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ start: from, end: to }),
-  });
-  if (!res.ok) throw new Error(`Su rotası alınamadı (${res.status})`);
-  return res.json();
+  let res;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ start: from, end: to }),
+    });
+  } catch (e) {
+    throw new Error("Bu bölgeye su yolu ile ulaşmak imkânsız.");
+  }
+  if (!res.ok) {
+    // 404 veya diğer HTTP hataları için kullanıcı dostu mesaj
+    if (res.status === 404 || res.status === 400) {
+      return { path: null, approximate: true, reason: "Bu bölgeye su yolu ile ulaşmak imkânsız." };
+    }
+    throw new Error("Bu bölgeye su yolu ile ulaşmak imkânsız.");
+  }
+  const data = await res.json().catch(() => ({}));
+  return data;
 }
 
 export async function analyzeRouteWithAI(startLat, startLng, endLat, endLng, mapImage = null) {
