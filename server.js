@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: "32mb" }));
 
-const GEMINI_KEY = process.env.GEMINI_API_KEY?.trim();
-const MAPS_KEY = process.env.GOOGLE_MAPS_API_KEY?.trim();
+let GEMINI_KEY = process.env.GEMINI_API_KEY?.trim();
+let MAPS_KEY = process.env.GOOGLE_MAPS_API_KEY?.trim();
 const COPERNICUS_ID = process.env.COPERNICUS_CLIENT_ID?.trim();
 const COPERNICUS_SECRET = process.env.COPERNICUS_CLIENT_SECRET?.trim();
 const AUTO_GEMINI_AFTER_ROUTE =
@@ -103,6 +103,17 @@ app.get("/api/config", (_req, res) => {
     copernicusConfigured: Boolean(COPERNICUS_ID && COPERNICUS_SECRET),
     autoGeminiAfterRoute: AUTO_GEMINI_AFTER_ROUTE,
     geminiModelsHint: geminiModelList().join(", "),
+  });
+});
+
+/** Runtime key ayarı — setup ekranından gönderilir */
+app.post("/api/set-keys", (req, res) => {
+  const { mapsKey, geminiKey } = req.body || {};
+  if (mapsKey && typeof mapsKey === "string") MAPS_KEY = mapsKey.trim();
+  if (geminiKey && typeof geminiKey === "string") GEMINI_KEY = geminiKey.trim();
+  res.json({
+    mapsApiKey: MAPS_KEY || "",
+    aiAvailable: Boolean(GEMINI_KEY),
   });
 });
 
