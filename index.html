@@ -15,10 +15,14 @@
 <div class="overlay" id="setupOverlay" style="display:none">
   <div class="setup-card">
     <h2>Operasyon konsolu</h2>
-    <p>Harita anahtarı sunucudan (<code>/api/config</code>) okunur. Yerel geliştirmede <code>.env</code> içine <code>GOOGLE_MAPS_API_KEY</code> ekleyin ve <code>npm start</code> ile açın.</p>
+    <p>Anahtarlar sunucudan okunur. Yoksa buraya girin — yalnızca bu oturum için geçerlidir.</p>
     <div class="field">
-      <label>Google Maps API Key (yedek — sunucu boşsa)</label>
+      <label>Google Maps API Key</label>
       <input type="password" id="gmKeyInput" autocomplete="off" placeholder="AIza...">
+    </div>
+    <div class="field" style="margin-top:10px">
+      <label>Gemini API Key</label>
+      <input type="password" id="geminiKeyInput" autocomplete="off" placeholder="AIza...">
     </div>
     <p id="gmKeyHint" class="setup-note"></p>
     <button type="button" class="btn btn-primary btn-block" id="btnStart">Haritayı başlat</button>
