@@ -916,8 +916,7 @@ function calculateRoute() {
           addMsg(
             AI_PANEL,
             "error",
-            out.reason ||
-              "Akarsu hattı bulunamadı — başlangıç/varışı nehre yaklaştırın (OSM su hattı gerekir)."
+            out.reason || "Bu bölgeye su yolu ile ulaşmak imkânsız."
           );
           return;
         }
