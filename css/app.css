@@ -783,3 +783,34 @@ header {
     display: none;
   }
 }
+
+/* ── Ekip listesi ── */
+#teamList .d-item {
+  padding: 6px 8px;
+  margin-bottom: 4px;
+}
+#teamList .d-info {
+  display: flex;
+  flex-direction: column;
+}
+#teamList .d-coords {
+  font-size: 10px;
+  color: var(--text3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Hayatta kalma widget ── */
+#survivalWidget {
+  background: rgba(10, 14, 24, 0.6);
+}
+#survivalBar {
+  transition: width 0.6s ease, background 0.6s ease;
+}
+
+/* ── Bina hasar notu ── */
+#bdgNote {
+  color: var(--accent);
+  font-size: 11px;
+}
