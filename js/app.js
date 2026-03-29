@@ -1249,3 +1249,23 @@ async function bootstrap() {
     const btn = e.target.closest("[data-tip]");
     if (!btn) return;
     $("assemblyTipFilter").querySelectorAll("button").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    filterAssembly($("assemblySearch")?.value || "", btn.dataset.tip);
+  });
+
+  $("chkAssemblyVisible")?.addEventListener("change", (e) => {
+    if (!state.toplanmaKatmani) return;
+    if (e.target.checked) {
+      filterAssembly($("assemblySearch")?.value || "");
+    } else {
+      state.toplanmaKatmani.hideAll();
+    }
+  });
+
+  updateEqRangeLabel();
+  updateKahramanSatBlock();
+  refreshDisasterUi();
+  if (!configMaps) setMapStatus(false, "Anahtar bekleniyor");
+}
+
+document.addEventListener("DOMContentLoaded", bootstrap);
