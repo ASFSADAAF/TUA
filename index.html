@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BKZS — Afet Yönetim Sistemi</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="overlay" id="setupOverlay" style="display:none">
+  <div class="setup-card">
+    <h2>Operasyon konsolu</h2>
+    <p>Harita anahtarı sunucudan (<code>/api/config</code>) okunur. Yerel geliştirmede <code>.env</code> içine <code>GOOGLE_MAPS_API_KEY</code> ekleyin ve <code>npm start</code> ile açın.</p>
+    <div class="field">
+      <label>Google Maps API Key (yedek — sunucu boşsa)</label>
+      <input type="password" id="gmKeyInput" autocomplete="off" placeholder="AIza...">
+    </div>
+    <p id="gmKeyHint" class="setup-note"></p>
+    <button type="button" class="btn btn-primary btn-block" id="btnStart">Haritayı başlat</button>
+  </div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark" aria-hidden="true">
+      <svg viewBox="0 0 16 16"><path d="M8 2v6M8 8l4-4M8 8l-4-4"/><circle cx="8" cy="12" r="2"/></svg>
+    </div>
+    <div>
+      <div class="logo-name">BKZS</div>
+      <div class="logo-sub">Operasyon merkezi</div>
+    </div>
+  </div>
+  <div class="header-mid">
+    <div class="status-chip"><span class="dot on" aria-hidden="true"></span> Sistem</div>
+    <div class="status-chip" data-chip="ai"><span class="dot" aria-hidden="true"></span> Yapay zeka</div>
+    <div class="status-chip"><span class="dot" id="mapDot"></span> <span id="mapStatus">Harita</span></div>
+    <div class="status-chip"><span class="dot" id="alertDot"></span> <span id="alertText">0 Alarm</span></div>
+  </div>
+  <div class="clock" id="clock">--:--:--</div>
+</header>
+
+<div class="app">
+  <aside class="panel-left">
+    <div class="p-head">
+      <span class="p-head-title">Rota planlama</span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button type="button" class="tab active" id="tabSim" role="tab">Simülasyon</button>
+      <button type="button" class="tab" id="tabReal" role="tab">Gerçek veri</button>
+    </div>
+    <div class="scroll-area">
+      <div class="pad">
+        <div class="field" style="margin-bottom:6px">
+          <label>Başlangıç</label>
+          <div class="coord-box" id="startBox">
+            <div class="cb-label">Koordinat</div>
+            <div class="cb-val" id="startCoords">Haritada seçin</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Varış</label>
+          <div class="coord-box" id="endBox">
+            <div class="cb-label">Koordinat</div>
+            <div class="cb-val" id="endCoords">Haritada seçin</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnCursorStart">Başlangıç</button>
+          <button type="button" class="btn btn-amber btn-sm" id="btnCursorEnd">Varış</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnClearRoute">Temizle</button>
+        </div>
+        <div class="field">
+          <label>Taşıt (rota modu)</label>
+          <select id="vehicleMode" title="Helikopter ve tekne Google yol ağı dışı özel çizim kullanır">
+            <option value="car" selected>Otomobil (karayolu)</option>
+            <option value="motorcycle">Motosiklet (karayolu)</option>
+            <option value="boat">Tekne (OSM akarsu — mümkünse)</option>
+            <option value="helicopter">Helikopter (düz hat)</option>
+          </select>
+        </div>
+
+        <div id="simControls">
+          <div class="divider"></div>
+                    <div class="field">
+            <label>Hasar seviyesi</label>
+            <select id="simSeverity">
+              <option value="high">Yüksek</option>
+              <option value="medium" selected>Orta</option>
+              <option value="low">Düşük</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Senaryo</label>
+            <select id="simScenario">
+              <option value="kahraman">Kahramanmaraş depremi</option>
+              <option value="istanbul">İstanbul senaryosu</option>
+              <option value="izmir">İzmir kıyı</option>
+              <option value="ankara">Ankara sel</option>
+              <option value="custom">Özel — manuel</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-amber btn-sm" id="btnLoadScenario">Senaryo yükle</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDisasterSim">+ Hasar</button>
+          </div>
+        </div>
+
+        <div id="realControls" style="display:none">
+          <div class="divider"></div>
+          <div class="field">
+            <label>Canlı depremler</label>
+            <select id="eqSource">
+              <option value="usgs">USGS (Türkiye kutusu)</option>
+              <option value="afad">AFAD (resmi liste)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label id="eqRangeLabel">Son gün (AFAD)</label>
+            <input type="number" id="eqDays" min="1" max="60" value="7" style="width:100%">
+          </div>
+          <div class="field">
+            <label>Min. büyüklük</label>
+            <input type="number" id="eqMinMag" min="0" step="0.1" value="2.5" style="width:100%">
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" id="btnLoadEarthquakes">Canlı yükle</button>
+          </div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>Koordinat <span class="badge badge-real">GERÇEK</span></label>
+            <input type="text" id="realCoordInput" placeholder="enlem,boylam — örn: 37.5765,36.9228" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label>Bölge adı</label>
+            <input type="text" id="realNameInput" placeholder="Açıklama">
+          </div>
+          <div class="field">
+            <label>Hasar seviyesi</label>
+            <select id="realSeverity">
+              <option value="high">Yüksek</option>
+              <option value="medium" selected>Orta</option>
+              <option value="low">Düşük</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-primary btn-sm" id="btnAddReal">Ekle</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnDisasterReal">Haritadan</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Şehir / İlçe Güvenli Rota -->
+        <div class="field">
+          <label style="display:flex;align-items:center;gap:6px">
+            <span style="width:8px;height:8px;border-radius:50%;background:#22d3ee;display:inline-block"></span>
+            Şehir / İlçe Güvenli Rota
+          </label>
+          <input type="text" id="cityFrom" placeholder="Başlangıç şehir veya ilçe…" autocomplete="off" style="margin-bottom:6px">
+          <input type="text" id="cityTo" placeholder="Varış şehir veya ilçe…" autocomplete="off">
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-primary btn-sm" id="btnCityRoute" style="flex:1">Güvenli Rota Bul</button>
+          <button type="button" class="btn btn-amber btn-sm" id="btnCityRouteAi" disabled>AI Analiz</button>
+        </div>
+        <p class="setup-note" id="cityRouteNote" style="margin:4px 0 0;display:none"></p>
+
+        <div class="divider"></div>
+        <button type="button" class="btn btn-primary btn-block" id="calcBtn" disabled>Rota hesapla</button>
+      </div>
+    </div>
+    <div class="p-head" style="border-top:1px solid var(--border)">
+      <span class="p-head-title">Hasar bölgeleri</span>
+      <span class="p-head-badge" id="disasterCount">0</span>
+    </div>
+    <div class="d-list scroll-area" id="disasterList"></div>
+  </aside>
+
+  <section class="map-area" aria-label="Harita">
+    <div id="map"></div>
+    <form class="map-search" id="mapSearchForm" action="#" autocomplete="off" aria-label="Konum ara">
+      <input type="search" id="mapGeocodeInput" enterkeyhint="search" placeholder="Konum ara…" maxlength="120" title="Örn: Şanlıurfa">
+      <button type="submit" class="map-search-btn" id="mapGeocodeSubmit" aria-label="Ara">Ara</button>
+    </form>
+    <div class="map-hud">
+      <span class="hud-mode" id="hudMode">Gözlem</span>
+      <span class="hud-sep">|</span>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--red)"></span> Yüksek</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span> Orta</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--green)"></span> Düşük</div>
+      <span class="hud-sep">|</span>
+      <div class="legend-item"><span style="width:16px;height:3px;background:var(--accent);border-radius:2px"></span> Rota</div>
+    </div>
+  </section>
+
+  <aside class="panel-right">
+    <!-- Sağ panel sekmeleri -->
+    <div class="tabs" role="tablist" style="border-bottom:1px solid var(--border)">
+      <button type="button" class="tab active" id="tabAnaliz" role="tab">Analiz &amp; AI</button>
+      <button type="button" class="tab" id="tabToplanma" role="tab">Toplanma</button>
+    </div>
+
+    <!-- ── ANALİZ PANELİ ── -->
+    <div id="paneAnaliz" style="display:flex;flex-direction:column;height:100%">
+      <div id="routeInfo" style="display:none">
+        <div class="route-grid">
+          <div class="r-card">
+            <div class="r-card-label">Mesafe</div>
+            <div class="r-card-val" id="routeDist">—</div>
+            <div class="r-card-sub">Seçilen güzergah</div>
+          </div>
+          <div class="r-card">
+            <div class="r-card-label">Süre</div>
+            <div class="r-card-val" id="routeTime">—</div>
+            <div class="r-card-sub">Normal trafik</div>
+          </div>
+        </div>
+        <div class="r-card-full">
+          <div class="r-card-label">Güvenlik skoru</div>
+          <div class="r-card-val" id="safetyScore">—</div>
+          <div class="r-card-sub" id="safetyDesc">Rota sonrası güncellenir</div>
+        </div>
+      </div>
+      <div class="ai-feed" id="aiPanel">
+        <div class="ai-msg system">
+          <div class="ai-label">Sistem</div>
+          <div class="ai-bubble">BKZS bağlandığında harita ve senaryolar buradan yönetilir. Metin ve uydu analizi sunucu üzerinden gelir (Gemini); API anahtarları tarayıcıya gömülmez.</div>
+        </div>
+      </div>
+      <div class="ai-foot">
+        <label class="field" style="display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:12px">
+          <input type="checkbox" id="chkAutoGemini" style="width:auto">
+          Rota sonrası otomatik Gemini (kota tüketir)
+        </label>
+        <button type="button" class="btn btn-primary btn-block" id="analyzeBtn" disabled>AI Rota Analizi (Gemini 2.5 Flash)</button>
+        <div style="height:8px"></div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-secondary btn-sm" id="btnAskDanger">Tehlike</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="btnAskPriority">Öncelik</button>
+          <button type="button" class="btn btn-amber btn-sm" id="btnAskWeather">Hava</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TOPLANMA ALANLARI PANELİ ── -->
+    <div id="paneToplanma" style="display:none;flex-direction:column;height:100%">
+      <div class="p-head"><span class="p-head-title">Afet Toplanma Alanları</span></div>
+      <div class="pad" style="flex-shrink:0">
+        <div class="field">
+          <input type="search" id="assemblySearch" placeholder="İl, ilçe veya alan adı ara…" autocomplete="off">
+        </div>
+        <div class="btn-row" style="flex-wrap:wrap;gap:4px" id="assemblyTipFilter">
+          <button type="button" class="btn btn-sm btn-secondary active" data-tip="">Tümü</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-tip="park">🌳 Park</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-tip="stadyum">🏟 Stadyum</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-tip="meydan">🏛 Meydan</button>
+          <button type="button" class="btn btn-sm btn-secondary" data-tip="spor">⚽ Spor</button>
+        </div>
+        <div class="btn-row" style="margin-top:6px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer">
+            <input type="checkbox" id="chkAssemblyVisible" checked style="width:auto;accent-color:#22c55e">
+            Haritada göster
+          </label>
+          <span id="assemblyCount" style="margin-left:auto;font-size:11px;color:var(--text3)">0 alan</span>
+        </div>      </div>
+      <div class="scroll-area" id="assemblyList" style="flex:1"></div>
+    </div>
+
+  </aside>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
